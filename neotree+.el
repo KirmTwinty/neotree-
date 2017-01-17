@@ -31,8 +31,10 @@
 ;;
 (require 'neotree)
 
-(defvar-local neop-list nil)
-
+(defvar-local neop-list-mark nil)
+(defvar-local neop-list-deletion nil)
+(setq neop-list-mark nil)
+(setq neop-list-deletion nil)
 (defun neop-mark-file()
   "Mark the current selected file for selection"
   (interactive)
@@ -40,7 +42,7 @@
     (setq buffer-read-only nil)
     (beginning-of-line)
     (neop-insert-mark)
-    (push (neo-buffer--get-filename-current-line) neop-list)
+    (push (neo-buffer--get-filename-current-line) neop-list-mark)
     (setq buffer-read-only t)))
 
 (defun neop-insert-mark()
@@ -56,15 +58,17 @@
     (beginning-of-line)
     (delete-char 1)
     (insert " ")
-    (setq neop-list (remove (neo-buffer--get-filename-current-line) neop-list))
-    (setq buffer-read-only t)))
+    (setq neop-list-deletion (remove (neo-buffer--get-filename-current-line) neop-list-deletion))
+    (setq neop-list-mark (remove (neo-buffer--get-filename-current-line) neop-list-mark))
+    ((set )q buffer-read-only t)))
 
 (defun neop-unmark-all-files()
   "Unmark all the selected files"
   (interactive)
   (neo-global--with-buffer
     (setq buffer-read-only nil)
-    (setq neop-list nil)
+    (setq neop-list-deletion nil)
+    (setq neop-list-mark nil)
     (neop-update-neotree)
     (setq buffer-read-only t)))
 
@@ -73,20 +77,28 @@
   (interactive)
   (neotree-refresh) ;; Refresh the view first
   (neo-global--with-buffer
+    (setq buffer-read-only nil)
     (goto-char (point-min))
     ;; For every buffer line
     (while (not (eobp))
-      (if (neop-find (neo-buffer--get-filename-current-line) neop-list)
+      (if (neop-find (neo-buffer--get-filename-current-line) neop-list-mark)
 	  (neop-insert-mark))
-      (forward-line))))
+      (if (neop-find (neo-buffer--get-filename-current-line) neop-list-deletion)
+	  (neop-insert-mark-deletion))
+      (forward-line))
+        (setq buffer-read-only t)))
 
 (defun neop-find (current-line list)
   "Find if the CURRENT-LINE is in the LIST."
   (if (null list)
       nil
-    (if (eq current-line (car list))
+    (if (string= current-line (car list))
 	t
-      (neop-find (cdr list)))))
+      (neop-find current-line (cdr list)))))
+(defun neop-insert-mark-deletion ()
+  "Insert the deletion mark."
+    (delete-char 1)
+    (insert (all-the-icons-faicon "times-circle-o")))
 
 (defun neop-mark-for-deletion()
   "Mark the current selected file for selection"
@@ -94,21 +106,20 @@
   (neo-global--with-buffer
     (setq buffer-read-only nil)
     (beginning-of-line)
-    (delete-char 1)
-    (insert (all-the-icons-faicon "times-circle-o"))
-;;    (insert (all-the-icons-faicon  "times-circle-o"))
+    (push (neo-buffer--get-filename-current-line) neop-list-deletion)
+    (neop-insert-mark-deletion)
     (setq buffer-read-only t)))
 
 (defun neop-copy()
   "Copy selected files"
   (interactive)
-  (if (not (null neop-list)) ;; If multiple files are selected
+  (if (not (null neop-list-mark)) ;; If multiple files are selected
     (let* ((current-path (neo-buffer--get-filename-current-line))
 	   msg
 	   to-path)
-      (setq msg (format "Copy [%d] files to: " (length neop-list)))
+      (setq msg (format "Copy [%d] files to: " (length neop-list-mark)))
       (setq to-path (read-file-name msg (file-name-directory current-path)))
-      (dolist (p neop-list)
+      (dolist (p neop-list-mark)
 	(copy-file p to-path))
       (message "Copy successful."))
        ;; Otherwise just ask neotree to do it
