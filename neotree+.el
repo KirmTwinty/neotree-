@@ -114,6 +114,5 @@
        ;; Otherwise just ask neotree to do it
     (neo-buffer--copy-node)))
     
-
 (provide 'neotree+)
 ;;; neotree+.el ends here
