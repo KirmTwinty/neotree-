@@ -1,6 +1,6 @@
 ;;; neotree+.el --- Extra features for neotree to replace dired
 
-;; Copyright (C) 2014 Thibaud Toullier
+;; Copyright (C) 2017 Thibaud Toullier
 
 ;; Author: Thibaud Toullier <t.toullier@gmail.com>
 ;; URL:
