@@ -124,6 +124,26 @@
       (message "Copy successful."))
        ;; Otherwise just ask neotree to do it
     (neo-buffer--copy-node)))
-    
+
+(defun neop-make-directory ()
+  "Create a new directory."
+  (interactive)
+  (setq directory-in (file-name-directory (neo-buffer--get-filename-current-line)))
+  (setq msg (format "New directory name? %s" directory-in))
+  (setq directory-name (read-string msg))
+  (make-directory (concat directory-in directory-name))
+  (message (format "Directory %s created." directory-name)))
+   
+(defun neop-delete ()
+  "Delete selection."
+  (interactive)
+  (dolist (p neop-list-deletion)
+    (if (file-exists-p p)
+	(if (file-directory-p p)
+	    (let ((recursive (yes-or-no-p (format "Recursively delete %s?" p))))
+	      (delete-directory p recursive))
+	  (delete-file p))))
+  (setq neop-list-deletion nil)
+  (neop-update-neotree))
 (provide 'neotree+)
 ;;; neotree+.el ends here
