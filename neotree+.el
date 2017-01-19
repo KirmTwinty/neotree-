@@ -33,8 +33,10 @@
 
 (defvar-local neop-list-mark nil)
 (defvar-local neop-list-deletion nil)
-(setq neop-list-mark nil)
-(setq neop-list-deletion nil)
+
+(defun neop-copy-path-to-clipboard()
+  )
+
 (defun neop-mark-file()
   "Mark the current selected file for selection"
   (interactive)
@@ -43,6 +45,7 @@
     (beginning-of-line)
     (neop-insert-mark)
     (push (neo-buffer--get-filename-current-line) neop-list-mark)
+    (forward-line)
     (setq buffer-read-only t)))
 
 (defun neop-insert-mark()
@@ -60,21 +63,25 @@
     (insert " ")
     (setq neop-list-deletion (remove (neo-buffer--get-filename-current-line) neop-list-deletion))
     (setq neop-list-mark (remove (neo-buffer--get-filename-current-line) neop-list-mark))
-    ((set )q buffer-read-only t)))
+    (forward-line)
+    (setq buffer-read-only t)))
 
 (defun neop-unmark-all-files()
   "Unmark all the selected files"
   (interactive)
   (neo-global--with-buffer
+    (setq old-line-number (line-number-at-pos))
     (setq buffer-read-only nil)
     (setq neop-list-deletion nil)
     (setq neop-list-mark nil)
     (neop-update-neotree)
+    (goto-line old-line-number)
     (setq buffer-read-only t)))
 
 (defun neop-update-neotree ()
   "Update the neotree view."
   (interactive)
+  (setq old-line-number (line-number-at-pos))
   (neotree-refresh) ;; Refresh the view first
   (neo-global--with-buffer
     (setq buffer-read-only nil)
@@ -86,7 +93,8 @@
       (if (neop-find (neo-buffer--get-filename-current-line) neop-list-deletion)
 	  (neop-insert-mark-deletion))
       (forward-line))
-        (setq buffer-read-only t)))
+    (setq buffer-read-only t))
+  (goto-line old-line-number))
 
 (defun neop-find (current-line list)
   "Find if the CURRENT-LINE is in the LIST."
@@ -106,8 +114,10 @@
   (neo-global--with-buffer
     (setq buffer-read-only nil)
     (beginning-of-line)
+    (remove )
     (push (neo-buffer--get-filename-current-line) neop-list-deletion)
     (neop-insert-mark-deletion)
+    (forward-line)
     (setq buffer-read-only t)))
 
 (defun neop-copy()
@@ -124,6 +134,29 @@
       (message "Copy successful."))
        ;; Otherwise just ask neotree to do it
     (neo-buffer--copy-node)))
+
+(defun neop-rename()
+  "Rename selected files"
+  (interactive)
+  (if (not (null neop-list-mark)) ;; If multiple files are selected
+    (let* ((current-path (neo-buffer--get-filename-current-line))
+	   msg
+	   to-path)
+      (if (> (length neop-list-mark) 1) ;; More than one file is selected
+	  (progn
+	    (setq msg (format "Move [%d] files to: " (length neop-list-mark)))
+	    (setq to-path (read-directory-name msg (file-name-directory current-path)))
+	    (dolist (p neop-list-mark)
+	      (copy-file p to-path)
+	      (delete-file p))
+	    (message "Move successful."))
+	(progn
+	  (setq msg (format "Rename %s to: " (car neop-list-mark)))
+	  (setq to-path (read-file-name msg (file-name-directory current-path)))
+	  (dolist (p neop-list-mark)
+	    (rename-file p to-path))
+	  (message "File renamed."))))       ;; Otherwise just ask neotree to do it
+    (neo-buffer--rename-node)))
 
 (defun neop-make-directory ()
   "Create a new directory."
@@ -145,5 +178,18 @@
 	  (delete-file p))))
   (setq neop-list-deletion nil)
   (neop-update-neotree))
+
+;; Update keymap
+(define-key neotree-mode-map (kbd "d") 'neop-mark-for-deletion)
+(define-key neotree-mode-map (kbd "m") 'neop-mark-file)
+(define-key neotree-mode-map (kbd "U") 'neop-unmark-all-files)
+(define-key neotree-mode-map (kbd "u") 'neop-unmark-file)
+(define-key neotree-mode-map (kbd "x") 'neop-delete)
+(define-key neotree-mode-map (kbd "+") 'neop-make-directory)
+(define-key neotree-mode-map (kbd "C-x C-f") 'neotree-create-node)
+(define-key neotree-mode-map (kbd "R") 'neop-rename)
+(define-key neotree-mode-map (kbd "g") 'neop-update-neotree)
+(define-key neotree-mode-map (kbd "^") 'neotree-select-up-node)
+
 (provide 'neotree+)
 ;;; neotree+.el ends here
