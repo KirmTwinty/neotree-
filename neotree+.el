@@ -178,7 +178,12 @@
 	  (delete-file p))))
   (setq neop-list-deletion nil)
   (neop-update-neotree))
-
+(defun neop-select-up-node ()
+   "Navigate to parent directory."
+   (interactive)
+   (neo-global--with-buffer
+     (goto-char (point-min))
+     (neotree-select-up-node)))
 ;; Update keymap
 (define-key neotree-mode-map (kbd "d") 'neop-mark-for-deletion)
 (define-key neotree-mode-map (kbd "m") 'neop-mark-file)
@@ -189,7 +194,7 @@
 (define-key neotree-mode-map (kbd "C-x C-f") 'neotree-create-node)
 (define-key neotree-mode-map (kbd "R") 'neop-rename)
 (define-key neotree-mode-map (kbd "g") 'neop-update-neotree)
-(define-key neotree-mode-map (kbd "^") 'neotree-select-up-node)
+(define-key neotree-mode-map (kbd "^") 'neop-select-up-node)
 
 (provide 'neotree+)
 ;;; neotree+.el ends here
