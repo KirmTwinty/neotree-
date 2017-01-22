@@ -108,13 +108,13 @@
     (delete-char 1)
     (insert (all-the-icons-faicon "times-circle-o")))
 
-(defun neop-mark-for-deletion()
-  "Mark the current selected file for selection"
+(defun neop-mark-for-deletion ()
+  "Mark the current selected file for selection."
   (interactive)
   (neo-global--with-buffer
     (setq buffer-read-only nil)
     (beginning-of-line)
-    (remove )
+    (remove (neo-buffer--get-filename-current-line) neop-list-mark)
     (push (neo-buffer--get-filename-current-line) neop-list-deletion)
     (neop-insert-mark-deletion)
     (forward-line)
