@@ -187,9 +187,7 @@
 	      (delete-file (car neop-list-deletion))
 	      (setq neop-list-deletion nil)
 	      (neop-update-neotree))))))
-  
-  (setq neop-list-deletion nil)
-  (neop-update-neotree))
+
 (defun neop-select-up-node ()
    "Navigate to parent directory."
    (interactive)
